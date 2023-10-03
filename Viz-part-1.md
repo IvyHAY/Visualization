@@ -20,6 +20,7 @@ library(tidyverse)
 
 ``` r
 library(ggridges)
+library(patchwork)
 ```
 
 # 格式设置
@@ -461,4 +462,259 @@ weather_df|>
 
 <img src="Viz-part-1_files/figure-gfm/unnamed-chunk-32-1.png" width="90%" />
 
-## Th
+## Themes
+
+``` r
+weather_df|>
+  ggplot(aes(x=tmin,y=tmax,color=name))+
+  geom_point(alpha=.5)+
+  labs(
+    title="Temperature plot",
+    x="Mim daily temp (Degreesc)",
+    y="Max daily temp",
+    color="Location",
+    caption="Max vs min daily temp in three locations;data from moaa"
+  ) +
+  viridis::scale_color_viridis(discrete=TRUE)+
+  theme_bw()+#the order here makes a difference, cannot be changed
+  theme(legend.position="bottom")
+```
+
+    ## Warning: Removed 17 rows containing missing values (`geom_point()`).
+
+<img src="Viz-part-1_files/figure-gfm/unnamed-chunk-33-1.png" width="90%" />
+
+``` r
+weather_df|>
+  ggplot(aes(x=tmin,y=tmax,color=name))+
+  geom_point(alpha=.5)+
+  labs(
+    title="Temperature plot",
+    x="Mim daily temp (Degreesc)",
+    y="Max daily temp",
+    color="Location",
+    caption="Max vs min daily temp in three locations;data from moaa"
+  ) +
+  viridis::scale_color_viridis(discrete=TRUE)+
+  theme_minimal()+#the order here makes a difference, cannot be changed
+  theme(legend.position="bottom")
+```
+
+    ## Warning: Removed 17 rows containing missing values (`geom_point()`).
+
+<img src="Viz-part-1_files/figure-gfm/unnamed-chunk-34-1.png" width="90%" />
+
+\##选择使用”viridis”颜色主题的原因是因为它在数据可视化中具有一些优点，特别是在表示渐变数据时。以下是一些选择”viridis”颜色主题的原因：
+
+良好的可读性：“viridis”颜色主题经过精心设计，确保颜色在不同亮度和饱和度下都能够清晰可辨。这使得图表更容易阅读，尤其是在印刷品和屏幕上。
+
+高对比度：“viridis”颜色主题具有高对比度，可以凸显数据中的细微变化。这对于强调趋势和差异非常有帮助。
+
+鉴别度高：“viridis”颜色主题的不同颜色之间的鉴别度很高，这意味着您可以在不同的数据系列之间轻松区分。
+
+适用于色盲：“viridis”颜色主题考虑了色盲人士，确保即使在色觉有问题的人也能正确解释图表。
+
+兼容性强：“viridis”颜色主题可以应用于各种数据类型和图表类型，包括散点图、线图、热图等。
+
+总之，“viridis”颜色主题被认为是一种有效的选择，因为它提供了良好的可视效果，有助于传达数据的重要信息，同时考虑了观众的可读性和色盲问题。
+
+## data argument…
+
+``` r
+weather_df|>
+  ggplot(aes(x=date,y=tmax))+
+  geom_point(aes(color=name))+
+  geom_smooth()
+```
+
+    ## `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'
+
+    ## Warning: Removed 17 rows containing non-finite values (`stat_smooth()`).
+
+    ## Warning: Removed 17 rows containing missing values (`geom_point()`).
+
+<img src="Viz-part-1_files/figure-gfm/unnamed-chunk-35-1.png" width="90%" />
+
+``` r
+weather_df|>
+  ggplot(aes(x=date,y=tmax,color=name))+
+  geom_point()+
+  geom_smooth()
+```
+
+    ## `geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+
+    ## Warning: Removed 17 rows containing non-finite values (`stat_smooth()`).
+
+    ## Warning: Removed 17 rows containing missing values (`geom_point()`).
+
+<img src="Viz-part-1_files/figure-gfm/unnamed-chunk-36-1.png" width="90%" />
+
+``` r
+nyc_weather_df=
+  weather_df|>
+  filter(name=="CentralPark_NY")
+hawaii_weather_df=
+  weather_df|>
+  filter(name=="Molokai_HI")
+
+ggplot(nyc_weather_df,aes(x=date,y=tmax,color=name))+
+  geom_point()+
+  geom_line(data=hawaii_weather_df)
+```
+
+<img src="Viz-part-1_files/figure-gfm/unnamed-chunk-37-1.png" width="90%" />
+
+``` r
+##process the data before plot is always a good choice
+```
+
+## `patchwork`
+
+``` r
+weather_df|>
+  ggplot(aes(x=date,y=tmax,color=name))+
+  geom_point()+
+  facet_grid(.~name)
+```
+
+    ## Warning: Removed 17 rows containing missing values (`geom_point()`).
+
+<img src="Viz-part-1_files/figure-gfm/unnamed-chunk-38-1.png" width="90%" />
+
+``` r
+##facet is used to duplicate the same type of plots 
+```
+
+``` r
+ggp_temp_scatter=
+  weather_df|>
+  ggplot(aes(x=tmin,y=tmax,color=name))+
+  geom_point(alpha=.5)+
+  theme(legend.position="none")
+
+ggp_prcp_density=
+  weather_df|>
+  filter(prcp>25)|>
+  ggplot(aes(x=prcp,fill=name))+
+  geom_density(alpha=.5)+
+  theme(legend.position="none")
+
+ggp_tmax_date=
+  weather_df|>
+  ggplot(aes(x=date,y=tmax,color=name))+
+  geom_point()+
+  geom_smooth(se=FALSE)+
+  theme(legend.position="bottom")
+
+
+(ggp_temp_scatter+ggp_prcp_density)/ggp_tmax_date
+```
+
+    ## Warning: Removed 17 rows containing missing values (`geom_point()`).
+
+    ## `geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+
+    ## Warning: Removed 17 rows containing non-finite values (`stat_smooth()`).
+    ## Removed 17 rows containing missing values (`geom_point()`).
+
+<img src="Viz-part-1_files/figure-gfm/unnamed-chunk-39-1.png" width="90%" />
+
+## data manipulation
+
+``` r
+weather_df|>
+  ggplot(aes(x=name,y=tmax))+
+  geom_boxplot()
+```
+
+    ## Warning: Removed 17 rows containing non-finite values (`stat_boxplot()`).
+
+<img src="Viz-part-1_files/figure-gfm/unnamed-chunk-40-1.png" width="90%" />
+
+``` r
+weather_df|>
+  mutate(
+    name=fct_relevel(name,c("Molokai_HI","CentralPark_NY","Waterhole_WA"))
+  )|>
+  ggplot(aes(x=name,y=tmax))+
+  geom_boxplot()
+```
+
+    ## Warning: Removed 17 rows containing non-finite values (`stat_boxplot()`).
+
+<img src="Viz-part-1_files/figure-gfm/unnamed-chunk-40-2.png" width="90%" />
+
+``` r
+## ggplot will convert the chr to fact variable by alpha ording
+
+weather_df|>
+  mutate(
+    name=fct_reorder(name,tmax)
+  )|>
+  ggplot(aes(x=name,y=tmax,fill=name))+
+  geom_violin()
+```
+
+    ## Warning: There was 1 warning in `mutate()`.
+    ## ℹ In argument: `name = fct_reorder(name, tmax)`.
+    ## Caused by warning:
+    ## ! `fct_reorder()` removing 17 missing values.
+    ## ℹ Use `.na_rm = TRUE` to silence this message.
+    ## ℹ Use `.na_rm = FALSE` to preserve NAs.
+
+    ## Warning: Removed 17 rows containing non-finite values (`stat_ydensity()`).
+
+<img src="Viz-part-1_files/figure-gfm/unnamed-chunk-40-3.png" width="90%" />
+
+## complicate FAS plot
+
+``` r
+litters_df=
+  read_csv("./Data/FAS_litters.csv")|>
+  janitor::clean_names()|>
+  separate(group,into=c("dose","day_of_tx"),sep=3)
+```
+
+    ## Rows: 49 Columns: 8
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (2): Group, Litter Number
+    ## dbl (6): GD0 weight, GD18 weight, GD of Birth, Pups born alive, Pups dead @ ...
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+pups_df=
+  read_csv("./Data/FAS_pups.csv")|>
+  janitor::clean_names()
+```
+
+    ## Rows: 313 Columns: 6
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (1): Litter Number
+    ## dbl (5): Sex, PD ears, PD eyes, PD pivot, PD walk
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+fas_df=
+  left_join(pups_df,litters_df,by="litter_number")
+fas_df|>
+  select(dose,day_of_tx,starts_with("pd"))|>
+  pivot_longer(
+    pd_ears:pd_walk,
+    names_to="outcome",
+    values_to="pn_day"
+  )|>
+  drop_na()|>
+  mutate(outcome=fct_reorder(outcome,pn_day))|>
+  ggplot(aes(x=dose,y=pn_day))+
+  geom_violin()+
+  facet_grid(day_of_tx~outcome)
+```
+
+<img src="Viz-part-1_files/figure-gfm/unnamed-chunk-41-1.png" width="90%" />
